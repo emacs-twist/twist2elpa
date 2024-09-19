@@ -1,0 +1,14 @@
+* twist2elpa: Build an ELPA-compatible package/archive from your Nix configuration [EXPERIMENTAL]
+This repository provides tools for producing the standard ~package.el~-compliant package artifacts from your [[https://github.com/emacs-twist/twist.nix][twist.nix]] configuration.
+
+Although ~twist.nix~ is cross-platform, it is still limited to Nix.
+For example, you cannot use your configuration on Windows without WSL.
+With ~twist2elpa~, you can build and distribute packages that can be installed using ~package.el~, so you can use your preferred packages on any operating systems that supports Emacs!
+First develop your configuration with Nix, and then run it on anywhere.
+** Usage
+This repository exposes an nixpkgs overlay from the flake.
+The overlay provides ~emacsTwist2Elpa~ attribute set, which contains the following functions:
+
+- ~buildElpaPackage~ :: Builds a single Emacs Lisp package that can be installed using ~package-install-file~.
+- ~buildElpaArchive~ :: Builds a package archive that can be added to ~package-archives~. You can upload the directory to a server like S3 and use it as a replacement for ELPA and MELPA.
+- ~buildElpaArchiveAsTar~ :: Like ~buildElpaArchive~, but creates a tar archive. Once you upload the archive to somewhere like GitHub Releases, you can download and use it offline on another machine.
