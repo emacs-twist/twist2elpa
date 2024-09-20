@@ -3,8 +3,25 @@
 { sourceInfo }:
 version:
 let
-  inherit (builtins) substring;
-  versionBody = if version != null then version else "0.0.0";
+  inherit (builtins)
+    substring
+    splitVersion
+    filter
+    concatStringsSep
+    match
+    ;
+
+  isDigits = str: match "[0-9]+" str != null;
+
+  sanitizeVersion =
+    str:
+    lib.pipe str [
+      splitVersion
+      (filter isDigits)
+      (concatStringsSep ".")
+    ];
+
+  versionBody = if version != null then sanitizeVersion version else "0.0.0";
 
   normalizeDigits = str: builtins.elemAt (builtins.match "0*(.+)" str) 0;
 
