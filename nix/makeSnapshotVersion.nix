@@ -9,6 +9,8 @@ let
     filter
     concatStringsSep
     match
+    head
+    tail
     ;
 
   isDigits = str: match "[0-9]+" str != null;
@@ -18,12 +20,15 @@ let
     lib.pipe str [
       splitVersion
       (filter isDigits)
+      normalizeTails
       (concatStringsSep ".")
     ];
 
   versionBody = if version != null then sanitizeVersion version else "0.0.0";
 
   normalizeDigits = str: builtins.elemAt (builtins.match "0*(.+)" str) 0;
+
+  normalizeTails = xs: [ (head xs) ] ++ (map normalizeDigits (tail xs));
 
   dateComponent = substring 0 8 (sourceInfo.lastModifiedDate);
 
