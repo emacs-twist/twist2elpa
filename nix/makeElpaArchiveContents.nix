@@ -4,15 +4,12 @@ in
 { lib }:
 packageInputs:
 let
-  lispList = xs: "(" + (concatStringsSep " " xs) + ")";
-
-  lispCons = car: cdr: "(${car} . ${cdr})";
-
-  lispVector = xs: "[" + (concatStringsSep " " xs) + "]";
-
-  escapeDoubleQuotes = replaceStrings [ "\"" ] [ "\\\"" ];
-
-  quoteString = str: "\"" + (escapeDoubleQuotes str) + "\"";
+  inherit (import ./lisp.nix)
+    lispList
+    lispCons
+    lispVector
+    quoteString
+    ;
 
   formatVersionAsList = version: lispList (lib.splitVersion version);
 
