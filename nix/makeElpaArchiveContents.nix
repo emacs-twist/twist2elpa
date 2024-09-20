@@ -1,5 +1,5 @@
 let
-  inherit (builtins) concatStringsSep;
+  inherit (builtins) concatStringsSep replaceStrings;
 in
 { lib }:
 packageInputs:
@@ -9,6 +9,10 @@ let
   lispCons = car: cdr: "(${car} . ${cdr})";
 
   lispVector = xs: "[" + (concatStringsSep " " xs) + "]";
+
+  escapeDoubleQuotes = replaceStrings [ "\"" ] [ "\\\"" ];
+
+  quoteString = str: "\"" + (escapeDoubleQuotes str) + "\"";
 
   formatVersionAsList = version: lispList (lib.splitVersion version);
 
@@ -35,7 +39,7 @@ let
             ))
             lispList
           ];
-      quotedDesc = "\"${meta.description}\"";
+      quotedDesc = if (meta.description or null) == null then "nil" else quoteString meta.description;
     in
     lispVector [
       (formatVersionAsList version)
