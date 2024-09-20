@@ -15,14 +15,24 @@
 }:
 drv:
 let
+  inherit (import ./lisp.nix)
+    lispList
+    lispCons
+    lispVector
+    quoteString
+    ;
+
   attrsToLispAlist =
     attrs:
-    "("
-    + lib.pipe attrs [
-      (lib.mapAttrsToList (name: value: "(${name} \"${value}\")"))
-      (builtins.concatStringsSep " ")
-    ]
-    + ")";
+    lispList (
+      lib.mapAttrsToList (
+        name: value:
+        lispList [
+          name
+          (quoteString value)
+        ]
+      ) attrs
+    );
 
   hasInfo = builtins.elem "info" drv.outputs;
 
@@ -34,14 +44,24 @@ runCommand "${ename}-${version}"
   {
     buildInputs = lib.optional hasInfo texinfo;
 
-    pkgDescription = ''
-      (define-package "${ename}" "${version}" "${meta.description}"
-        '${attrsToLispAlist (builtins.mapAttrs (_: v: if v != null then v else "0.0.0") packageRequires)}
-        ${commitInfo})
-      ;; Local Variables:
-      ;; no-byte-compile: t
-      ;; End:
-    '';
+    pkgDescription =
+      (lispList [
+        "define-package"
+        (quoteString ename)
+        (quoteString version)
+        (quoteString meta.description)
+        (
+          "'"
+          + (attrsToLispAlist (builtins.mapAttrs (_: v: if v != null then v else "0.0.0") packageRequires))
+        )
+        commitInfo
+      ])
+      + "\n"
+      + ''
+        ;; Local Variables:
+        ;; no-byte-compile: t
+        ;; End:
+      '';
 
     passAsFile = [ "pkgDescription" ];
   }
