@@ -29,6 +29,9 @@ let
   makeElpaArchiveContents = import ./makeElpaArchiveContents.nix { inherit lib; };
 
   buildElpaArchive =
+    opts@{
+      withInstaller ? false,
+    }:
     packageInputs:
     let
       packageInputs' = mapAttrs (_: convertAttrs) packageInputs;
@@ -41,6 +44,7 @@ let
            .
         )
       '') packageInputs';
+      installerScript = import ./makeInstaller.nix { inherit lib; } packageInputs';
     in
     pkgs.runCommand "elpa-archive"
       {
@@ -48,21 +52,29 @@ let
         allowSubstitutes = false;
         passthru.entries = attrValues packageEntries;
         archiveContents = makeElpaArchiveContents packageInputs';
-        passAsFile = [ "archiveContents" ];
+        installerScript = lib.optionalString withInstaller installerScript;
+        passAsFile = [
+          "archiveContents"
+          "installerScript"
+        ];
       }
       ''
         mkdir -p $out
         ${lib.concatStrings tarCommands}
+        if [[ -s "$installerScriptPath" ]]
+        then
+          cat "$installerScriptPath" > $out/install-all.el
+        fi
         cat "$archiveContentsPath" > $out/archive-contents
       '';
 
   buildElpaArchiveAsTar =
-    name: packageInputs:
+    opts: name: packageInputs:
     pkgs.runCommand "elpa-archive"
       {
         preferLocalBuild = true;
         allowSubstitutes = false;
-        root = buildElpaArchive packageInputs;
+        root = buildElpaArchive opts packageInputs;
       }
       ''
         mkdir -p $out
