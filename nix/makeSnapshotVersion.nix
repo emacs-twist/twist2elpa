@@ -20,7 +20,7 @@ let
     lib.pipe str [
       splitVersion
       (filter isDigits)
-      normalizeTails
+      normalizeTail
       (concatStringsSep ".")
     ];
 
@@ -28,7 +28,7 @@ let
 
   normalizeDigits = str: builtins.elemAt (builtins.match "0*(.+)" str) 0;
 
-  normalizeTails = xs: [ (head xs) ] ++ (map normalizeDigits (tail xs));
+  normalizeTail = xs: [ (head xs) ] ++ (map normalizeDigits (tail xs));
 
   dateComponent = substring 0 8 (sourceInfo.lastModifiedDate);
 
