@@ -1,10 +1,13 @@
 * twist2elpa: Build an ELPA-compatible package/archive from your Nix configuration [EXPERIMENTAL]
 This repository provides tools for producing the standard ~package.el~-compliant package artifacts from your [[https://github.com/emacs-twist/twist.nix][twist.nix]] configuration.
 
-Although ~twist.nix~ is cross-platform, it is still limited to Nix.
-For example, you cannot use your configuration on Windows without WSL.
-With ~twist2elpa~, you can build and distribute packages that can be installed using ~package.el~, so you can use your preferred packages on any operating systems that supports Emacs!
+Although twist.nix is cross-platform, it is still limited to Nix.
+For example, you can't use your configuration on Windows.
+With twist2elpa, you can build and distribute ELPA packages with little effort, so you can install them using ~package.el~.
+Because ~package.el~ is shipped with Emacs, this means you can use your favorite packages on any operating system that supports Emacs, with the package revisions exactly the same as your preferred environment.
 First develop your configuration with Nix, and then run it on anywhere.
+
+Note that this is an experimental functionality, it is maintained in a separate repository, and it does not assure 100% compatibility with ELPA or MELPA.
 ** Usage
 This repository exposes an nixpkgs overlay from the flake.
 The overlay provides ~emacsTwist2Elpa~ attribute set, which contains the following functions:
@@ -12,3 +15,6 @@ The overlay provides ~emacsTwist2Elpa~ attribute set, which contains the followi
 - ~buildElpaPackage~ :: Builds a single Emacs Lisp package that can be installed using ~package-install-file~.
 - ~buildElpaArchive~ :: Builds a package archive that can be added to ~package-archives~. You can upload the directory to a server like S3 and use it as a replacement for ELPA and MELPA.
 - ~buildElpaArchiveAsTar~ :: Like ~buildElpaArchive~, but creates a tar archive. Once you upload the archive to somewhere like GitHub Releases, you can download and use it offline on another machine.
+
+It is *not*​ recommended to add your ~twist2elpa~-generated archive to ~package-archives~ alongside ELPA and/or MELPA.
+Rather, the generated archive works as a replacement, or proxy, for GNU/nonGNU ELPA and MELPA.
