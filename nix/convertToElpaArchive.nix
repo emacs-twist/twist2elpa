@@ -17,8 +17,6 @@ drv:
 let
   inherit (import ./lisp.nix)
     lispList
-    lispCons
-    lispVector
     quoteString
     ;
 

@@ -1,5 +1,5 @@
 let
-  inherit (builtins) concatStringsSep replaceStrings;
+  inherit (builtins) concatStringsSep;
 in
 { lib }:
 packageInputs:
@@ -20,7 +20,7 @@ let
       meta,
       version,
       ...
-    }@attrs:
+    }:
     let
       packReqsString =
         if packageRequires == null || packageRequires == { } then
