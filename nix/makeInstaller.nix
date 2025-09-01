@@ -21,7 +21,8 @@ in
   ;;   emacs -q -batch -l ./install-all.el
 
   (setq package-archives
-        (list (cons "local" (file-name-directory load-file-name))))
+        (list (cons "local" (file-name-directory (or load-file-name
+                                                     (buffer-file-name))))))
   (setq package-install-upgrade-built-in t)
   (package-initialize)
   (package-refresh-contents)
