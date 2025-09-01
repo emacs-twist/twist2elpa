@@ -27,12 +27,7 @@ in
 rec {
   # Build a single package that can be installed using `package-install-file`.
   buildElpaPackage =
-    { pkgs }:
-    attrs:
-    let
-      elpaAttrs = convertAttrs { inherit (pkgs) lib; } attrs;
-    in
-    convertToElpaArchive { inherit pkgs; } elpaAttrs (buildElispPackage pkgs elpaAttrs);
+    { pkgs }: attrs: convertToElpaArchive { inherit pkgs; } attrs (buildElispPackage pkgs attrs);
 
   # Build an entire package archive that can be specified in `package-archives`
   # custom variable. `buildElpaArchive` builds a directory that can be served
