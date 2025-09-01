@@ -7,9 +7,19 @@ in
 packageInputs:
 let
   installerExp =
-    { ename, version, ... }:
+    {
+      ename,
+      version,
+      packageRequires,
+      ...
+    }:
+    let
+      emacsVersionCheckExp =
+        if packageRequires ? emacs then "(version<= \"${packageRequires.emacs}\" emacs-version)" else "t";
+    in
     ''
-      (unless (package-installed-p '${ename} '${lispList (splitVersion version)})
+      (unless (and ${emacsVersionCheckExp}
+                   (package-installed-p '${ename} '${lispList (splitVersion version)}))
         (package-install '${ename}))
     '';
 
