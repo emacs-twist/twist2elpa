@@ -18,8 +18,8 @@ let
         if packageRequires ? emacs then "(version<= \"${packageRequires.emacs}\" emacs-version)" else "t";
     in
     ''
-      (unless (and ${emacsVersionCheckExp}
-                   (package-installed-p '${ename} '${lispList (splitVersion version)}))
+      (when (and ${emacsVersionCheckExp}
+                 (not (package-installed-p '${ename} '${lispList (splitVersion version)})))
         (package-install '${ename}))
     '';
 
