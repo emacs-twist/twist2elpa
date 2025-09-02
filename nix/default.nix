@@ -35,20 +35,25 @@ rec {
   # can be distributed from GitHub Releases (Note: it's recommended to compress
   # the tar archive before you upload it).
 
-  archivePrefix = "elpa-archive/";
-
   buildElpaArchive =
     {
-      pkgs,
-      withInstaller ? false,
+      asInitDirectory ? false,
+      archivePrefix ? "elpa-archive/",
+      ...
     }:
-    packageInputs:
+    {
+      packageInputs,
+      pkgs,
+      initFiles,
+      ...
+    }:
     let
+      archivePrefix' = if asInitDirectory then archivePrefix else "";
       packageInputs' = mapAttrs (_: convertAttrs { inherit (pkgs) lib; }) packageInputs;
       packageEntries = mapAttrs (_: buildElpaPackage { inherit pkgs; }) packageInputs';
       tarCommands = pkgs.lib.mapAttrsToList (name: attrs: ''
         ( name="${attrs.ename}-${attrs.version}" \
-        && tar --mode u+w -cf "$out/${archivePrefix}$name.tar" \
+        && tar --mode u+w -cf "$out/${archivePrefix'}$name.tar" \
            --transform "s,^,$name/," \
            -C ${packageEntries.${name}} \
            .
@@ -56,7 +61,7 @@ rec {
       '') packageInputs';
       installerScript = import ./makeInstaller.nix {
         inherit (pkgs) lib;
-        inherit archivePrefix;
+        archivePrefix = archivePrefix';
       } packageInputs';
     in
     pkgs.runCommand "elpa-archive"
@@ -65,30 +70,46 @@ rec {
         allowSubstitutes = false;
         passthru.entries = attrValues packageEntries;
         archiveContents = makeElpaArchiveContents { inherit (pkgs) lib; } packageInputs';
-        installerScript = pkgs.lib.optionalString withInstaller installerScript;
+        installerScript = pkgs.lib.optionalString asInitDirectory installerScript;
+        initFile = ''
+          (load-file (file-name-concat (file-name-directory (or load-file-name
+                                                                (buffer-file-name)))
+                                       "install-all.el"))
+        '';
         passAsFile = [
           "archiveContents"
           "installerScript"
+          "initFile"
         ];
       }
-      ''
-        mkdir -p $out
-        ${pkgs.lib.concatStrings tarCommands}
-        if [[ -s "$installerScriptPath" ]]
-        then
+      (
+        ''
+          mkdir -p $out/${archivePrefix'}
+          ${pkgs.lib.concatStrings tarCommands}
+
+          cat "$archiveContentsPath" > $out/${archivePrefix'}archive-contents
+        ''
+        + pkgs.lib.optionalString asInitDirectory ''
+
           cat "$installerScriptPath" > $out/install-all.el
-        fi
-        cat "$archiveContentsPath" > $out/${archivePrefix}archive-contents
-      '';
+          cat "$initFilePath" > $out/init.el
+
+          for file in ${builtins.concatStringsSep " " initFiles}
+          do
+            cat "$file" >> $out/init.el
+            echo >> $out/init.el
+          done
+        ''
+      );
 
   buildElpaArchiveAsTar =
-    { pkgs, ... }@opts:
-    name: packageInputs:
+    { name, ... }@opts:
+    emacs-env@{ pkgs, ... }:
     pkgs.runCommand "elpa-archive"
       {
         preferLocalBuild = true;
         allowSubstitutes = false;
-        root = buildElpaArchive opts packageInputs;
+        root = buildElpaArchive opts emacs-env;
       }
       ''
         mkdir -p $out
