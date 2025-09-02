@@ -3,7 +3,7 @@ let
 
   lispList = xs: "(" + (concatStringsSep " " xs) + ")";
 in
-{ lib }:
+{ lib, archivePrefix }:
 packageInputs:
 let
   installerExp =
@@ -31,8 +31,10 @@ in
   ;;   emacs -q -batch -l ./install-all.el
 
   (setq package-archives
-        (list (cons "local" (file-name-directory (or load-file-name
-                                                     (buffer-file-name))))))
+        (list (cons "local" (file-name-concat (file-name-directory
+                                                  (or load-file-name
+                                                      (buffer-file-name)))
+                                              "${archivePrefix}"))))
   (setq package-install-upgrade-built-in t)
   (package-initialize)
   (package-refresh-contents)

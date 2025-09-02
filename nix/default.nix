@@ -35,6 +35,8 @@ rec {
   # can be distributed from GitHub Releases (Note: it's recommended to compress
   # the tar archive before you upload it).
 
+  archivePrefix = "elpa-archive/";
+
   buildElpaArchive =
     {
       pkgs,
@@ -46,13 +48,16 @@ rec {
       packageEntries = mapAttrs (_: buildElpaPackage { inherit pkgs; }) packageInputs';
       tarCommands = pkgs.lib.mapAttrsToList (name: attrs: ''
         ( name="${attrs.ename}-${attrs.version}" \
-        && tar --mode u+w -cf "$out/$name.tar" \
+        && tar --mode u+w -cf "$out/${archivePrefix}$name.tar" \
            --transform "s,^,$name/," \
            -C ${packageEntries.${name}} \
            .
         )
       '') packageInputs';
-      installerScript = import ./makeInstaller.nix { inherit (pkgs) lib; } packageInputs';
+      installerScript = import ./makeInstaller.nix {
+        inherit (pkgs) lib;
+        inherit archivePrefix;
+      } packageInputs';
     in
     pkgs.runCommand "elpa-archive"
       {
@@ -73,7 +78,7 @@ rec {
         then
           cat "$installerScriptPath" > $out/install-all.el
         fi
-        cat "$archiveContentsPath" > $out/archive-contents
+        cat "$archiveContentsPath" > $out/${archivePrefix}archive-contents
       '';
 
   buildElpaArchiveAsTar =
