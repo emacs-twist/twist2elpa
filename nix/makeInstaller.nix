@@ -37,7 +37,7 @@ in
                                               "${archivePrefix}"))))
   (setq package-install-upgrade-built-in t)
   (package-initialize)
-  (package-refresh-contents)
+  (package-read-all-archive-contents)
 
   ${lib.concatStrings installerExps}
 
