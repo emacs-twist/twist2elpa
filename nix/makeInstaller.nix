@@ -20,7 +20,15 @@ let
     ''
       (when (and ${emacsVersionCheckExp}
                  (not (package-installed-p '${ename} '${lispList (splitVersion version)})))
-        (package-install '${ename}))
+        (condition-case-unless-debug err
+           (package-install '${ename})
+         (error
+           (display-warning 'twist2elpa
+                            (format "Failed to install package %s %s %s"
+                                    '${ename}
+                                    '${version}
+                                    (error-message-string err))
+                            :error))))
     '';
 
   installerExps = lib.mapAttrsToList (_: installerExp) packageInputs;
